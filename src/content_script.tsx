@@ -1,6 +1,3 @@
-// src/content_script.tsx
-console.log("Content script is running");
-
 function injectStyles() {
   const style = document.createElement('style');
   style.textContent = `
@@ -14,7 +11,7 @@ function injectStyles() {
       padding: 10px;
       cursor: pointer;
       z-index: 9999;
-      transition: opacity 0.3s ease, left 0.3s ease;
+      transition: opacity 0.3s ease;
     }
 
     #webtoc-nav {
@@ -29,6 +26,14 @@ function injectStyles() {
       overflow-y: auto;
       transition: left 0.3s ease;
       z-index: 9998;
+    }
+
+    #webtoc-nav-header {
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      cursor: move;
+      text-align: center;
     }
 
     #webtoc-nav ul {
@@ -50,10 +55,6 @@ function injectStyles() {
     #webtoc-nav li img {
       margin-right: 5px;
     }
-
-    #webtoc-nav:hover {
-      left: 0;
-    }
   `;
   document.head.appendChild(style);
 }
@@ -62,7 +63,47 @@ function createTOCContainer(background: string): HTMLDivElement {
   const toc = document.createElement('div');
   toc.id = 'webtoc-nav';
   toc.style.backgroundColor = background;
+
+  const header = document.createElement('div');
+  header.id = 'webtoc-nav-header';
+  header.innerText = 'TOC';
+  toc.appendChild(header);
+
   return toc;
+}
+
+function makeElementDraggable(element: HTMLElement, handle: HTMLElement) {
+  let offsetX = 0, offsetY = 0, startX = 0, startY = 0;
+  let isDragging = false;
+
+  handle.onmousedown = function (e) {
+    e.preventDefault();
+    startX = e.clientX;
+    startY = e.clientY;
+    isDragging = true;
+    document.onmouseup = closeDragElement;
+    document.onmousemove = elementDrag;
+  };
+
+  function elementDrag(e: MouseEvent) {
+    e.preventDefault();
+    offsetX = startX - e.clientX;
+    offsetY = startY - e.clientY;
+    startX = e.clientX;
+    startY = e.clientY;
+    element.style.top = (element.offsetTop - offsetY) + "px";
+    element.style.left = (element.offsetLeft - offsetX) + "px";
+  }
+
+  function closeDragElement() {
+    isDragging = false;
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+
+  return {
+    isDragging: () => isDragging
+  };
 }
 
 function createNavButton(): HTMLDivElement {
@@ -73,8 +114,6 @@ function createNavButton(): HTMLDivElement {
 }
 
 function generateTOC() {
-  console.log("generateTOC function called");
-
   const background = window.getComputedStyle(document.body).backgroundColor;
   injectStyles();
 
@@ -83,8 +122,6 @@ function generateTOC() {
     console.log("No headers found on this page.");
     return;
   }
-
-  console.log(`Found ${headers.length} headers.`);
 
   const toc = createTOCContainer(background);
   const navButton = createNavButton();
@@ -120,14 +157,19 @@ function generateTOC() {
   document.body.appendChild(navButton);
   document.body.appendChild(toc);
 
+  const headerElement = toc.querySelector('#webtoc-nav-header') as HTMLElement | null;
+  const draggable = headerElement ? makeElementDraggable(toc, headerElement) : null;
+
   navButton.addEventListener('mouseover', () => {
     navButton.style.opacity = '0';
     toc.style.left = '0';
   });
 
   toc.addEventListener('mouseleave', () => {
-    toc.style.left = '-250px';
-    navButton.style.opacity = '1';
+    if (!draggable?.isDragging()) {
+      toc.style.left = '-250px';
+      navButton.style.opacity = '1';
+    }
   });
 
   chrome.runtime.sendMessage({
