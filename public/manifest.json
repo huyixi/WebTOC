@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "WebTOC",
+  "version": "1.0.0",
+  "description": "Generates a table of contents for the current page based on header tags (h1-h6).",
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/content_script.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "permissions": [
+    "activeTab"
+  ]
+}
