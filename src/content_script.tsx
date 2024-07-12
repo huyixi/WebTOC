@@ -82,7 +82,7 @@ function injectStyles() {
     }
 
     #webtoc-toc-control-bar {
-      margin-bottom:2px;
+      margin-bottom: 4px;
       padding: 4px 8px;
       height: 24px;
     }
