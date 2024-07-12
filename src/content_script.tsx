@@ -1,7 +1,7 @@
 function injectStyles() {
   const style = document.createElement("style");
   style.textContent = `
-    #webtoc-nav-button {
+    #webtoc-side-button {
       position: fixed;
       top: 50%;
       left: 0;
@@ -14,7 +14,7 @@ function injectStyles() {
       transition: opacity 0.3s ease;
     }
 
-    #webtoc-nav {
+    #webtoc-toc {
       position: fixed;
       top: 0;
       left: -250px;
@@ -27,99 +27,49 @@ function injectStyles() {
       z-index: 9998;
     }
 
-    #webtoc-nav-header {
+    #webtoc-toc-control-bar {
+      padding: 4px 8px;
+      height: 24px;
+    }
+
+    #webtoc-toc-control-bar .close-button {
+      float: left;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      cursor: pointer;
+      background: #ff5c5c;
+      border: 1px solid #e33e41;
+    }
+
+    #webtoc-toc-header {
       color: black;
       cursor: move;
       text-align: center;
     }
-    #webtoc-control-bar {
-    padding: 4px 8px;
-    height: 24px;
-    z-index: 9999;
-    }
-    #webtoc-nav-header .close-button{
-    float:left;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-  cursor: pointer;
-    background: #ff5c5c;
-  border: 1px solid #e33e41;
-    }
 
-    #webtoc-nav ul {
+    #webtoc-toc ul {
       list-style-type: none;
       padding-left: 0;
       margin: 0;
     }
 
-    #webtoc-nav ul ul {
+    #webtoc-toc ul ul {
       padding-left: 20px;
     }
 
-    #webtoc-nav li {
+    #webtoc-toc li {
       margin-left: 0;
       display: flex;
       align-items: center;
     }
 
-    #webtoc-nav li img {
+    #webtoc-toc li img {
       margin-right: 5px;
     }
   `;
   document.head.appendChild(style);
-}
-
-function createTOCContainer(background: string): HTMLDivElement {
-  const toc = document.createElement("div");
-  const title = document.querySelector("title") || document.querySelector("h1");
-  toc.id = "webtoc-nav";
-  toc.style.backgroundColor = background;
-
-  const header = document.createElement("div");
-  header.id = "webtoc-nav-header";
-
-  const controlBar = createControlBar();
-  header.appendChild(controlBar);
-
-  const headerTitle = document.createElement("div");
-  headerTitle.id = "webtoc-nav-header-title";
-  headerTitle.innerText = title?.innerText || "";
-  header.appendChild(headerTitle);
-
-  toc.appendChild(header);
-
-  return toc;
-}
-
-function createControlBar(): HTMLDivElement {
-  const controlBar = document.createElement("div");
-  controlBar.id = "webtoc-control-bar";
-
-  const closeButton = document.createElement("div");
-  closeButton.classList.add("close-button");
-  closeButton.onclick = () => {
-    const toc = document.getElementById("webtoc-nav");
-    if (toc) {
-      toc.style.left = "-250px";
-    }
-  };
-
-  controlBar.appendChild(closeButton);
-
-  closeButton.addEventListener("click", () => {
-    const toc = document.getElementById("webtoc-nav");
-    if (toc) {
-      toc.style.left = "-250px";
-    }
-    const navButton = document.getElementById("webtoc-nav-button");
-    if (navButton) {
-      navButton.style.opacity = "1";
-    }
-  });
-
-  return controlBar;
 }
 
 function makeElementDraggable(element: HTMLElement, handle: HTMLElement) {
@@ -159,28 +109,73 @@ function makeElementDraggable(element: HTMLElement, handle: HTMLElement) {
   };
 }
 
-function createNavButton(): HTMLDivElement {
-  const button = document.createElement("div");
-  button.id = "webtoc-nav-button";
-  button.innerText = "目录";
-  return button;
+function createSideButton(): HTMLDivElement {
+  const sideButton = document.createElement("div");
+  sideButton.id = "webtoc-side-button";
+  sideButton.innerText = "目录";
+
+  sideButton.onclick = () => {
+    const toc = document.getElementById("webtoc-toc");
+    if (toc) {
+      toc.style.left = "0";
+      sideButton.style.left = "-250px";
+    }
+  };
+  return sideButton;
 }
 
-function generateTOC() {
-  const background = window.getComputedStyle(document.body).backgroundColor;
-  injectStyles();
+function createTOCControlBar(): HTMLDivElement {
+  const controlBar = document.createElement("div");
+  controlBar.id = "webtoc-toc-control-bar";
+
+  const closeButton = document.createElement("div");
+  closeButton.classList.add("close-button");
+
+  closeButton.onclick = () => {
+    const toc = document.getElementById("webtoc-toc");
+    const sideButton = document.getElementById("webtoc-side-button");
+    if (toc) {
+      toc.style.left = "-250px";
+      console.log("sideButton0", sideButton?.style.left);
+      if (sideButton) {
+        console.log("sideButton", sideButton.style.left);
+        sideButton.style.left = "0";
+      }
+    }
+  };
+
+  controlBar.appendChild(closeButton);
+
+  return controlBar;
+}
+
+function createTOCHeader(): HTMLElement {
+  const header = document.createElement("header");
+  header.id = "webtoc-toc-header";
+
+  const title = document.querySelector("title") || document.querySelector("h1");
+  const headerTitle = document.createElement("div");
+  headerTitle.id = "webtoc-toc-header-title";
+  headerTitle.innerText = title?.innerText || "";
+  header.appendChild(headerTitle);
+
+  return header;
+}
+
+function createTOCBody(): HTMLDivElement {
+  const body = document.createElement("div");
+  body.id = "webtoc-toc-body";
 
   const headers = document.querySelectorAll("h2, h3, h4, h5, h6");
   if (headers.length === 0) {
     console.log("No headers found on this page.");
-    return;
+    const placeholderDiv = document.createElement("div");
+    placeholderDiv.innerText = "No headers found.";
+    return placeholderDiv;
   }
 
-  const toc = createTOCContainer(background);
-  const navButton = createNavButton();
-
   const ulStack = [document.createElement("ul")];
-  toc.appendChild(ulStack[0]);
+  body.appendChild(ulStack[0]);
 
   headers.forEach((header) => {
     const element = header as HTMLElement;
@@ -206,36 +201,44 @@ function generateTOC() {
 
     ulStack[ulStack.length - 1].appendChild(li);
   });
-
-  document.body.appendChild(navButton);
-  document.body.appendChild(toc);
-
-  const headerElement = toc.querySelector("#webtoc-nav-header") as HTMLElement | null;
-  const draggable = headerElement ? makeElementDraggable(toc, headerElement) : null;
-
-  navButton.addEventListener("click", () => {
-    navButton.style.opacity = "0";
-    toc.style.left = "0";
-  });
-
-  // toc.addEventListener("click", () => {
-  //   if (!draggable?.isDragging()) {
-  //     toc.style.left = "-250px";
-  //     navButton.style.opacity = "1";
-  //   }
-  // });
-
-  chrome.runtime.sendMessage({
-    type: "TOC_GENERATED",
-    data: toc.innerHTML,
-  });
+  return body;
 }
 
-function runWhenDocumentReady() {
+function createTOCContainer(): HTMLDivElement {
+  const background = window.getComputedStyle(document.body).backgroundColor;
+  const toc = document.createElement("div");
+  toc.id = "webtoc-toc";
+  toc.style.backgroundColor = background;
+  document.body.appendChild(toc);
+
+  const controlBar = createTOCControlBar();
+  const tocHeader = createTOCHeader();
+  const tocBody = createTOCBody();
+
+  toc.appendChild(controlBar);
+  toc.appendChild(tocHeader);
+  toc.appendChild(tocBody);
+
+  return toc;
+}
+
+function main(): void {
+  const sideButton = createSideButton();
+  const tocX = createTOCContainer();
+
+  if (document.body.parentNode) {
+    document.body.parentNode.insertBefore(sideButton, document.body.nextSibling);
+    document.body.parentNode.insertBefore(tocX, document.body.nextSibling);
+  }
+
+  injectStyles();
+}
+
+function runWhenDocumentReady(): void {
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", generateTOC);
+    document.addEventListener("DOMContentLoaded", main);
   } else {
-    generateTOC();
+    main();
   }
 }
 
