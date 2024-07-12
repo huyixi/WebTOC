@@ -1,3 +1,49 @@
+function rgbStringToHsl(rgb: string): { h: number; s: number; l: number } {
+  const result = rgb.match(/\d+/g);
+  if (!result || result.length !== 3) {
+    throw new Error("Invalid RGB format. Use 'rgb(r, g, b)' format.");
+  }
+
+  const r = parseInt(result[0], 10);
+  const g = parseInt(result[1], 10);
+  const b = parseInt(result[2], 10);
+
+  const rNormalized = r / 255;
+  const gNormalized = g / 255;
+  const bNormalized = b / 255;
+
+  const max = Math.max(rNormalized, gNormalized, bNormalized);
+  const min = Math.min(rNormalized, gNormalized, bNormalized);
+  let h = 0,
+    s = 0,
+    l = (max + min) / 2;
+
+  if (max !== min) {
+    const delta = max - min;
+    s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+
+    switch (max) {
+      case rNormalized:
+        h = (gNormalized - bNormalized) / delta + (gNormalized < bNormalized ? 6 : 0);
+        break;
+      case gNormalized:
+        h = (bNormalized - rNormalized) / delta + 2;
+        break;
+      case bNormalized:
+        h = (rNormalized - gNormalized) / delta + 4;
+        break;
+    }
+
+    h /= 6;
+  }
+
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100),
+  };
+}
+
 function injectStyles() {
   const style = document.createElement("style");
   style.textContent = `
@@ -19,8 +65,8 @@ function injectStyles() {
       top: 0;
       left: -250px;
       width: 250px;
-      background-color: rgba(255, 255, 255, 0.9);
       border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       max-height: 100%;
       overflow-y: auto;
       transition: left 0.3s ease;
@@ -33,14 +79,29 @@ function injectStyles() {
     }
 
     #webtoc-toc-control-bar .close-button {
+      position: relative;
       float: left;
-      width: 12px;
-      height: 12px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       display: inline-block;
       cursor: pointer;
       background: #ff5c5c;
       border: 1px solid #e33e41;
+    }
+
+    .button-icon {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 12px;
+      color: black;
+    }
+
+    #webtoc-toc-control-bar .close-button:hover .button-icon {
+      display: inline-block;
     }
 
     #webtoc-toc-header {
@@ -65,10 +126,7 @@ function injectStyles() {
       align-items: center;
     }
 
-    #webtoc-toc li img {
-      margin-right: 5px;
-    }
-  `;
+    `;
   document.head.appendChild(style);
 }
 
@@ -131,6 +189,10 @@ function createTOCControlBar(): HTMLDivElement {
   const closeButton = document.createElement("div");
   closeButton.classList.add("close-button");
 
+  const closeButtonIcon = document.createElement("div");
+  closeButtonIcon.classList.add("button-icon");
+  closeButtonIcon.innerText = "x";
+
   closeButton.onclick = () => {
     const toc = document.getElementById("webtoc-toc");
     const sideButton = document.getElementById("webtoc-side-button");
@@ -144,6 +206,7 @@ function createTOCControlBar(): HTMLDivElement {
     }
   };
 
+  closeButton.appendChild(closeButtonIcon);
   controlBar.appendChild(closeButton);
 
   return controlBar;
@@ -206,12 +269,17 @@ function createTOCBody(): HTMLDivElement {
 
 function createTOCContainer(): HTMLDivElement {
   const background = window.getComputedStyle(document.body).backgroundColor;
+  const originBgHsl = rgbStringToHsl(background);
+  const darkBgHslString = `hsl(${originBgHsl.h}, ${originBgHsl.s}%, ${originBgHsl.l - 4}%)`;
+  const darkBgHslString2 = `hsl(${originBgHsl.h}, ${originBgHsl.s}%, ${originBgHsl.l - 8}%)`;
+
   const toc = document.createElement("div");
   toc.id = "webtoc-toc";
-  toc.style.backgroundColor = background;
+  toc.style.backgroundColor = darkBgHslString;
   document.body.appendChild(toc);
 
   const controlBar = createTOCControlBar();
+  controlBar.style.backgroundColor = darkBgHslString2;
   const tocHeader = createTOCHeader();
   const tocBody = createTOCBody();
 
