@@ -191,7 +191,7 @@ function createTOCControlBar(): HTMLDivElement {
 
   const closeButtonIcon = document.createElement("div");
   closeButtonIcon.classList.add("button-icon");
-  closeButtonIcon.innerText = "x";
+  closeButtonIcon.innerText = "×";
 
   closeButton.onclick = () => {
     const toc = document.getElementById("webtoc-toc");
