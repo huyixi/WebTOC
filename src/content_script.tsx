@@ -65,9 +65,12 @@ function injectStyles() {
       top: 0;
       left: -250px;
       width: 250px;
+      border-radius: 4px;
       border: 1px solid rgba(0, 0, 0, 0.1);
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      max-height: 100%;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+      max-height: 95%;
+      margin-top: 2.5%;
       overflow-y: auto;
       transition: left 0.3s ease;
       z-index: 9998;
