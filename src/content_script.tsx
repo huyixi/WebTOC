@@ -1,5 +1,5 @@
 function injectStyles() {
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.textContent = `
     #webtoc-nav-button {
       position: fixed;
@@ -20,8 +20,7 @@ function injectStyles() {
       left: -250px;
       width: 250px;
       background-color: rgba(255, 255, 255, 0.9);
-      border-right: 1px solid rgba(0, 0, 0, 0.1);
-      padding: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
       max-height: 100%;
       overflow-y: auto;
       transition: left 0.3s ease;
@@ -29,11 +28,24 @@ function injectStyles() {
     }
 
     #webtoc-nav-header {
-      background-color: #007bff;
-      color: white;
-      padding: 10px;
+      color: black;
       cursor: move;
       text-align: center;
+    }
+    #webtoc-control-bar {
+    padding: 4px 8px;
+    height: 24px;
+    z-index: 9999;
+    }
+    #webtoc-nav-header .close-button{
+    float:left;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  cursor: pointer;
+    background: #ff5c5c;
+  border: 1px solid #e33e41;
     }
 
     #webtoc-nav ul {
@@ -60,20 +72,61 @@ function injectStyles() {
 }
 
 function createTOCContainer(background: string): HTMLDivElement {
-  const toc = document.createElement('div');
-  toc.id = 'webtoc-nav';
+  const toc = document.createElement("div");
+  const title = document.querySelector("title") || document.querySelector("h1");
+  toc.id = "webtoc-nav";
   toc.style.backgroundColor = background;
 
-  const header = document.createElement('div');
-  header.id = 'webtoc-nav-header';
-  header.innerText = 'TOC';
+  const header = document.createElement("div");
+  header.id = "webtoc-nav-header";
+
+  const controlBar = createControlBar();
+  header.appendChild(controlBar);
+
+  const headerTitle = document.createElement("div");
+  headerTitle.id = "webtoc-nav-header-title";
+  headerTitle.innerText = title?.innerText || "";
+  header.appendChild(headerTitle);
+
   toc.appendChild(header);
 
   return toc;
 }
 
+function createControlBar(): HTMLDivElement {
+  const controlBar = document.createElement("div");
+  controlBar.id = "webtoc-control-bar";
+
+  const closeButton = document.createElement("div");
+  closeButton.classList.add("close-button");
+  closeButton.onclick = () => {
+    const toc = document.getElementById("webtoc-nav");
+    if (toc) {
+      toc.style.left = "-250px";
+    }
+  };
+
+  controlBar.appendChild(closeButton);
+
+  closeButton.addEventListener("click", () => {
+    const toc = document.getElementById("webtoc-nav");
+    if (toc) {
+      toc.style.left = "-250px";
+    }
+    const navButton = document.getElementById("webtoc-nav-button");
+    if (navButton) {
+      navButton.style.opacity = "1";
+    }
+  });
+
+  return controlBar;
+}
+
 function makeElementDraggable(element: HTMLElement, handle: HTMLElement) {
-  let offsetX = 0, offsetY = 0, startX = 0, startY = 0;
+  let offsetX = 0,
+    offsetY = 0,
+    startX = 0,
+    startY = 0;
   let isDragging = false;
 
   handle.onmousedown = function (e) {
@@ -91,8 +144,8 @@ function makeElementDraggable(element: HTMLElement, handle: HTMLElement) {
     offsetY = startY - e.clientY;
     startX = e.clientX;
     startY = e.clientY;
-    element.style.top = (element.offsetTop - offsetY) + "px";
-    element.style.left = (element.offsetLeft - offsetX) + "px";
+    element.style.top = element.offsetTop - offsetY + "px";
+    element.style.left = element.offsetLeft - offsetX + "px";
   }
 
   function closeDragElement() {
@@ -102,14 +155,14 @@ function makeElementDraggable(element: HTMLElement, handle: HTMLElement) {
   }
 
   return {
-    isDragging: () => isDragging
+    isDragging: () => isDragging,
   };
 }
 
 function createNavButton(): HTMLDivElement {
-  const button = document.createElement('div');
-  button.id = 'webtoc-nav-button';
-  button.innerText = '目录';
+  const button = document.createElement("div");
+  button.id = "webtoc-nav-button";
+  button.innerText = "目录";
   return button;
 }
 
@@ -117,7 +170,7 @@ function generateTOC() {
   const background = window.getComputedStyle(document.body).backgroundColor;
   injectStyles();
 
-  const headers = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  const headers = document.querySelectorAll("h2, h3, h4, h5, h6");
   if (headers.length === 0) {
     console.log("No headers found on this page.");
     return;
@@ -126,23 +179,23 @@ function generateTOC() {
   const toc = createTOCContainer(background);
   const navButton = createNavButton();
 
-  const ulStack = [document.createElement('ul')];
+  const ulStack = [document.createElement("ul")];
   toc.appendChild(ulStack[0]);
 
-  headers.forEach(header => {
+  headers.forEach((header) => {
     const element = header as HTMLElement;
-    const link = document.createElement('a');
-    link.href = `#${element.id || element.innerText.replace(/\s+/g, '-')}`;
+    const link = document.createElement("a");
+    link.href = `#${element.id || element.innerText.replace(/\s+/g, "-")}`;
     link.innerText = element.innerText;
 
-    const li = document.createElement('li');
+    const li = document.createElement("li");
     li.appendChild(link);
 
     const currentLevel = parseInt(header.tagName.charAt(1));
     let lastLevel = ulStack.length;
 
     if (currentLevel > lastLevel) {
-      const newUl = document.createElement('ul');
+      const newUl = document.createElement("ul");
       ulStack[ulStack.length - 1].appendChild(newUl);
       ulStack.push(newUl);
     } else if (currentLevel < lastLevel) {
@@ -157,20 +210,20 @@ function generateTOC() {
   document.body.appendChild(navButton);
   document.body.appendChild(toc);
 
-  const headerElement = toc.querySelector('#webtoc-nav-header') as HTMLElement | null;
+  const headerElement = toc.querySelector("#webtoc-nav-header") as HTMLElement | null;
   const draggable = headerElement ? makeElementDraggable(toc, headerElement) : null;
 
-  navButton.addEventListener('mouseover', () => {
-    navButton.style.opacity = '0';
-    toc.style.left = '0';
+  navButton.addEventListener("click", () => {
+    navButton.style.opacity = "0";
+    toc.style.left = "0";
   });
 
-  toc.addEventListener('mouseleave', () => {
-    if (!draggable?.isDragging()) {
-      toc.style.left = '-250px';
-      navButton.style.opacity = '1';
-    }
-  });
+  // toc.addEventListener("click", () => {
+  //   if (!draggable?.isDragging()) {
+  //     toc.style.left = "-250px";
+  //     navButton.style.opacity = "1";
+  //   }
+  // });
 
   chrome.runtime.sendMessage({
     type: "TOC_GENERATED",
@@ -179,8 +232,8 @@ function generateTOC() {
 }
 
 function runWhenDocumentReady() {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', generateTOC);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", generateTOC);
   } else {
     generateTOC();
   }
