@@ -47,18 +47,23 @@ function rgbStringToHsl(rgb: string): { h: number; s: number; l: number } {
 function injectStyles() {
   const style = document.createElement("style");
   style.textContent = `
-    #webtoc-side-button {
-      position: fixed;
-      top: 50%;
-      left: 0;
-      transform: translateY(-50%);
-      background-color: #007bff;
-      color: white;
-      padding: 10px;
-      cursor: pointer;
-      z-index: 9999;
-      transition: opacity 0.3s ease;
-    }
+  #webtoc-side-button {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    color: black;
+    padding: 10px;
+    cursor: pointer;
+    z-index: 9999;
+    transition: opacity 0.3s ease;
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
 
     #webtoc-toc {
       position: fixed;
@@ -69,11 +74,12 @@ function injectStyles() {
       border: 1px solid rgba(0, 0, 0, 0.1);
       box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
       backdrop-filter: blur(10px);
-      max-height: 95%;
+      max-height: 90%;
       margin-top: 2.5%;
       overflow-y: auto;
       transition: left 0.3s ease;
       z-index: 9998;
+      filter: url(#webtoc-background-filter);
     }
 
     #webtoc-toc-control-bar {
@@ -129,7 +135,17 @@ function injectStyles() {
       align-items: center;
     }
 
-    `;
+    #webtoc-toc::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: inherit;
+      filter: brightness(0.8) saturate(1.2);
+    }
+  `;
   document.head.appendChild(style);
 }
 
