@@ -1,12 +1,20 @@
 function rgbStringToHsl(rgb: string): { h: number; s: number; l: number } {
+  let r, g, b;
   const result = rgb.match(/\d+/g);
-  if (!result || result.length !== 3) {
+  console.log("🚀 - rgbStringToHsl - result:", rgb, result);
+  if (!result || (result.length !== 3 && result.length !== 4)) {
     throw new Error("Invalid RGB format. Use 'rgb(r, g, b)' format.");
   }
 
-  const r = parseInt(result[0], 10);
-  const g = parseInt(result[1], 10);
-  const b = parseInt(result[2], 10);
+  r = parseInt(result[0], 10);
+  g = parseInt(result[1], 10);
+  b = parseInt(result[2], 10);
+
+  if (r === 0 && g === 0 && b === 0) {
+    r = 255;
+    g = 255;
+    b = 255;
+  }
 
   const rNormalized = r / 255;
   const gNormalized = g / 255;
