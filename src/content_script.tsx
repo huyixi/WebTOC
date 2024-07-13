@@ -124,7 +124,6 @@ function injectStyles() {
     #webtoc-toc-header {
       color: black;
       cursor: move;
-      text-align: center;
     }
 
     #webtoc-toc ul {
@@ -229,11 +228,11 @@ function createTOCControlBar(): HTMLDivElement {
 }
 
 function createTOCHeader(): HTMLElement {
-  const header = document.createElement("header");
+  const header = document.createElement("div");
   header.id = "webtoc-toc-header";
 
   const title = document.querySelector("title") || document.querySelector("h1");
-  const headerTitle = document.createElement("div");
+  const headerTitle = document.createElement("p");
   headerTitle.id = "webtoc-toc-header-title";
   headerTitle.innerText = title?.innerText || "";
   header.appendChild(headerTitle);
@@ -265,7 +264,7 @@ function createTOCBody(): HTMLDivElement {
     const li = document.createElement("li");
     li.appendChild(link);
 
-    const currentLevel = parseInt(header.tagName.charAt(1));
+    const currentLevel = parseInt(header.tagName.charAt(1)) - 1;
     let lastLevel = ulStack.length;
 
     if (currentLevel > lastLevel) {
