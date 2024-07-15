@@ -1,7 +1,7 @@
 {
   "name": "WebTOC",
   "version": "0.0.1",
-  "description": "WebTOC is a Chrome extension designed to generate a table of contents (TOC) for the current webpage based on its header tags (h1-h6). This tool enhances navigation and accessibility by providing users with a structured overview of the content, allowing them to quickly locate and jump to different sections of the page.",
+  "description": "A Chrome extension that creates a table of contents (TOC) for any webpage.",
   "main": "index.js",
   "scripts": {
     "watch": "webpack --config webpack/webpack.dev.js --watch",
