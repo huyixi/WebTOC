@@ -90,14 +90,19 @@ function injectStyles() {
     }
 
     #webtoc-toc-control-bar {
-      margin-bottom: 4px;
-      padding: 4px 8px;
-      height: 24px;
+      padding: 6px 8px;
+      cursor: move;
+    }
+
+    #webtoc-toc-control-bar::after {
+    content: "";
+    display: table;
+    clear: both;
     }
 
     #webtoc-toc-control-bar .close-button {
       position: relative;
-      float: left;
+      float: right;
       width: 16px;
       height: 16px;
       border-radius: 50%;
@@ -121,9 +126,8 @@ function injectStyles() {
       display: inline-block;
     }
 
-    #webtoc-toc-header {
-      color: black;
-      cursor: move;
+    #webtoc-toc-body {
+      padding: 6px 8px;
     }
 
     #webtoc-toc ul {
@@ -227,22 +231,23 @@ function createTOCControlBar(): HTMLDivElement {
   return controlBar;
 }
 
-function createTOCHeader(): HTMLElement {
-  const header = document.createElement("div");
-  header.id = "webtoc-toc-header";
+function createTOCTitle(): HTMLElement {
+  const titleEl = document.createElement("a");
+  titleEl.id = "webtoc-toc-title";
 
   const title = document.querySelector("title") || document.querySelector("h1");
-  const headerTitle = document.createElement("p");
-  headerTitle.id = "webtoc-toc-header-title";
-  headerTitle.innerText = title?.innerText || "";
-  header.appendChild(headerTitle);
+  titleEl.innerText = title?.innerText || "";
+  titleEl.href = "#";
 
-  return header;
+  return titleEl;
 }
 
 function createTOCBody(): HTMLDivElement {
   const body = document.createElement("div");
   body.id = "webtoc-toc-body";
+
+  const tocTitle = createTOCTitle();
+  body.appendChild(tocTitle);
 
   const headers = document.querySelectorAll("h2, h3, h4, h5, h6");
   if (headers.length === 0) {
@@ -264,7 +269,7 @@ function createTOCBody(): HTMLDivElement {
     const li = document.createElement("li");
     li.appendChild(link);
 
-    const currentLevel = parseInt(header.tagName.charAt(1)) - 1;
+    const currentLevel = parseInt(header.tagName.charAt(1));
     let lastLevel = ulStack.length;
 
     if (currentLevel > lastLevel) {
@@ -295,11 +300,9 @@ function createTOCContainer(): HTMLDivElement {
 
   const controlBar = createTOCControlBar();
   controlBar.style.backgroundColor = darkBgHslString2;
-  const tocHeader = createTOCHeader();
   const tocBody = createTOCBody();
 
   toc.appendChild(controlBar);
-  toc.appendChild(tocHeader);
   toc.appendChild(tocBody);
 
   return toc;
