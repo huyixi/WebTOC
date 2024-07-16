@@ -180,7 +180,7 @@ function createSideButton(): HTMLDivElement {
   return sideButton;
 }
 
-function createTOCControlBar(): HTMLDivElement {
+function createTOCControlBar(toc: HTMLDivElement): HTMLDivElement {
   const controlBar = document.createElement("div");
   controlBar.id = "webtoc-toc-control-bar";
 
@@ -206,6 +206,38 @@ function createTOCControlBar(): HTMLDivElement {
 
   closeButton.appendChild(closeButtonIcon);
   controlBar.appendChild(closeButton);
+
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  controlBar.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    offsetX = e.clientX - toc.getBoundingClientRect().left;
+    offsetY = e.clientY - toc.getBoundingClientRect().top;
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+    document.body.style.userSelect = "none";
+  });
+
+  function onMouseMove(e: MouseEvent) {
+    if (isDragging) {
+      toc.style.left = `${e.clientX - offsetX}px`;
+      toc.style.top = `${e.clientY - offsetY}px`;
+    }
+  }
+
+  function onMouseUp() {
+    isDragging = false;
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+    document.body.style.userSelect = "";
+  }
 
   return controlBar;
 }
@@ -277,7 +309,7 @@ function createTOCContainer(): HTMLDivElement {
   toc.style.backgroundColor = darkBgHslString;
   document.body.appendChild(toc);
 
-  const controlBar = createTOCControlBar();
+  const controlBar = createTOCControlBar(toc);
   controlBar.style.backgroundColor = darkBgHslString2;
   const tocBody = createTOCBody();
 
