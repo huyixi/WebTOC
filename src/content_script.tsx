@@ -102,13 +102,57 @@ function createSideButton(): HTMLDivElement {
   sideButton.id = "webtoc-side-button";
   sideButton.innerText = "目录";
 
-  sideButton.onclick = () => {
-    const toc = document.getElementById("webtoc-toc");
-    if (toc) {
-      toc.style.left = "0";
-      sideButton.style.left = "-250px";
+  let isDragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+
+  sideButton.addEventListener("mousedown", (e) => {
+    isDragging = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    startTime = new Date().getTime();
+    offsetX = e.clientX - sideButton.getBoundingClientRect().left;
+    offsetY = e.clientY - sideButton.getBoundingClientRect().top;
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+    document.body.style.userSelect = "none";
+  });
+
+  function onMouseMove(e: MouseEvent) {
+    const currentX = e.clientX;
+    const currentY = e.clientY;
+    const deltaX = Math.abs(currentX - startX);
+    const deltaY = Math.abs(currentY - startY);
+
+    if (deltaX > 5 || deltaY > 5) {
+      isDragging = true;
+      sideButton.style.left = `${e.clientX - offsetX}px`;
+      sideButton.style.top = `${e.clientY - offsetY}px`;
     }
-  };
+  }
+
+  function onMouseUp(e: MouseEvent) {
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+    document.body.style.userSelect = "";
+    const endTime = new Date().getTime();
+    const timeDiff = endTime - startTime;
+
+    if (!isDragging && timeDiff < 200) {
+      const toc = document.getElementById("webtoc-toc");
+      if (toc) {
+        toc.style.left = "0";
+        sideButton.style.left = "-250px";
+      }
+    }
+
+    isDragging = false;
+  }
+
   return sideButton;
 }
 
