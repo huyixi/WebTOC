@@ -107,7 +107,19 @@ function createSideButton(): HTMLDivElement {
   let offsetY = 0;
   let startX = 0;
   let startY = 0;
+
   let startTime = 0;
+  const savedLeft = localStorage.getItem("webtoc-side-button-left");
+  const savedTop = localStorage.getItem("webtoc-side-button-top");
+
+  if (savedLeft && savedTop) {
+    sideButton.style.left = savedLeft;
+    sideButton.style.top = savedTop;
+  } else {
+    sideButton.style.left = "0";
+    sideButton.style.top = "50%";
+    sideButton.style.transform = "translateY(-50%)";
+  }
 
   sideButton.addEventListener("mousedown", (e) => {
     isDragging = false;
@@ -146,12 +158,24 @@ function createSideButton(): HTMLDivElement {
       const toc = document.getElementById("webtoc-toc");
       if (toc) {
         toc.style.left = "0";
-        sideButton.style.left = "-250px";
+        // sideButton.style.left = "-250px";
       }
     }
 
+    localStorage.setItem("webtoc-side-button-left", sideButton.style.left);
+    localStorage.setItem("webtoc-side-button-top", sideButton.style.top);
+
     isDragging = false;
   }
+
+  window.addEventListener("storage", (e) => {
+    console.log("storage position", e.key, e.newValue);
+    if (e.key === "webtoc-side-button-left") {
+      sideButton.style.left = e.newValue || "0";
+    } else if (e.key === "webtoc-side-button-top") {
+      sideButton.style.top = e.newValue || "50%";
+    }
+  });
 
   return sideButton;
 }
