@@ -1,5 +1,4 @@
 // color.ts
-
 export function rgbStringToHsl(rgb: string): { h: number; s: number; l: number } {
   let r, g, b;
   const result = rgb.match(/\d+/g);

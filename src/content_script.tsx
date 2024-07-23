@@ -1,224 +1,24 @@
 import { rgbStringToHsl } from "./utils/color";
+import { injectStyles } from "./utils/injectStyles";
 
-function injectStyles() {
-  const style = document.createElement("style");
-  style.textContent = `
-  #webtoc-side-button {
-    position: fixed;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.2);
-    color: black;
-    padding: 10px;
-    cursor: pointer;
-    z-index: 9999;
-    transition: opacity 0.3s ease;
-    border-radius: 16px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-  }
-
-    #webtoc-toc {
-      position: fixed;
-      top: 0;
-      left: -250px;
-      width: 250px;
-      border-radius: 4px;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
-      backdrop-filter: blur(10px);
-      max-height: 90%;
-      margin-top: 2.5%;
-      overflow-y: auto;
-      transition: left 0.3s ease;
-      z-index: 9998;
-      filter: url(#webtoc-background-filter);
-    }
-
-    #webtoc-toc-control-bar {
-      padding: 6px 8px;
-      cursor: move;
-    }
-
-    #webtoc-toc-control-bar::after {
-    content: "";
-    display: table;
-    clear: both;
-    }
-
-    #webtoc-toc-control-bar .close-button {
-      position: relative;
-      float: right;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      display: inline-block;
-      cursor: pointer;
-      background: #ff5c5c;
-      border: 1px solid #e33e41;
-    }
-
-    .button-icon {
-      display: none;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 12px;
-      color: black;
-    }
-
-    #webtoc-toc-control-bar .close-button:hover .button-icon {
-      display: inline-block;
-    }
-
-    #webtoc-toc-body {
-      padding: 6px 8px;
-    }
-
-    #webtoc-toc ul {
-      list-style-type: none;
-      padding-left: 0;
-      margin: 0;
-    }
-
-    #webtoc-toc ul ul {
-      padding-left: 20px;
-    }
-
-    #webtoc-toc li {
-      margin-left: 0;
-      display: flex;
-      align-items: center;
-    }
-  `;
-  document.head.appendChild(style);
-}
-
-function createSideButton(): HTMLDivElement {
-  const sideButton = document.createElement("div");
-  sideButton.id = "webtoc-side-button";
-  sideButton.innerText = "目录";
-
-  let isDragging = false;
-  let offsetX = 0;
-  let offsetY = 0;
-  let startX = 0;
-  let startY = 0;
-
-  let startTime = 0;
-  const savedLeft = localStorage.getItem("webtoc-side-button-left");
-  const savedTop = localStorage.getItem("webtoc-side-button-top");
-
-  if (savedLeft && savedTop) {
-    sideButton.style.left = savedLeft;
-    sideButton.style.top = savedTop;
-  } else {
-    sideButton.style.left = "0";
-    sideButton.style.top = "50%";
-    sideButton.style.transform = "translateY(-50%)";
-  }
-
-  sideButton.addEventListener("mousedown", (e) => {
-    isDragging = false;
-    startX = e.clientX;
-    startY = e.clientY;
-    startTime = new Date().getTime();
-    offsetX = e.clientX - sideButton.getBoundingClientRect().left;
-    offsetY = e.clientY - sideButton.getBoundingClientRect().top;
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-    document.body.style.userSelect = "none";
-  });
-
-  function onMouseMove(e: MouseEvent) {
-    const currentX = e.clientX;
-    const currentY = e.clientY;
-    const deltaX = Math.abs(currentX - startX);
-    const deltaY = Math.abs(currentY - startY);
-
-    if (deltaX > 5 || deltaY > 5) {
-      isDragging = true;
-      sideButton.style.left = `${e.clientX - offsetX}px`;
-      sideButton.style.top = `${e.clientY - offsetY}px`;
-    }
-  }
-
-  function onMouseUp(e: MouseEvent) {
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
-    document.body.style.userSelect = "";
-    const endTime = new Date().getTime();
-    const timeDiff = endTime - startTime;
-
-    if (!isDragging && timeDiff < 200) {
-      const toc = document.getElementById("webtoc-toc");
-      if (toc) {
-        toc.style.left = "0";
-        // sideButton.style.left = "-250px";
-      }
-    }
-
-    localStorage.setItem("webtoc-side-button-left", sideButton.style.left);
-    localStorage.setItem("webtoc-side-button-top", sideButton.style.top);
-
-    isDragging = false;
-  }
-
-  window.addEventListener("storage", (e) => {
-    console.log("storage position", e.key, e.newValue);
-    if (e.key === "webtoc-side-button-left") {
-      sideButton.style.left = e.newValue || "0";
-    } else if (e.key === "webtoc-side-button-top") {
-      sideButton.style.top = e.newValue || "50%";
-    }
-  });
-
-  return sideButton;
-}
-
-function createTOCControlBar(toc: HTMLDivElement): HTMLDivElement {
+function createTocControlBar(toc: HTMLDivElement): HTMLDivElement {
   const controlBar = document.createElement("div");
-  controlBar.id = "webtoc-toc-control-bar";
-
-  const closeButton = document.createElement("div");
-  closeButton.classList.add("close-button");
-
-  const closeButtonIcon = document.createElement("div");
-  closeButtonIcon.classList.add("button-icon");
-  closeButtonIcon.innerText = "×";
-
-  closeButton.onclick = () => {
-    const toc = document.getElementById("webtoc-toc");
-    const sideButton = document.getElementById("webtoc-side-button");
-    if (toc) {
-      toc.style.left = "-250px";
-      console.log("sideButton0", sideButton?.style.left);
-      if (sideButton) {
-        console.log("sideButton", sideButton.style.left);
-        sideButton.style.left = "0";
-      }
-    }
-  };
-
-  closeButton.appendChild(closeButtonIcon);
-  controlBar.appendChild(closeButton);
+  controlBar.id = "webtoc-control-bar";
+  controlBar.innerText = "TOC";
 
   let isDragging = false;
   let startX = 0;
   let startY = 0;
-  let offsetX = 0;
-  let offsetY = 0;
+  let initialLeft = 0;
+  let initialTop = 0;
+  let rafId: number | null = null;
 
   controlBar.addEventListener("mousedown", (e) => {
     isDragging = true;
     startX = e.clientX;
     startY = e.clientY;
-    offsetX = e.clientX - toc.getBoundingClientRect().left;
-    offsetY = e.clientY - toc.getBoundingClientRect().top;
+    initialLeft = toc.offsetLeft;
+    initialTop = toc.offsetTop;
 
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
@@ -227,9 +27,21 @@ function createTOCControlBar(toc: HTMLDivElement): HTMLDivElement {
 
   function onMouseMove(e: MouseEvent) {
     if (isDragging) {
-      toc.style.left = `${e.clientX - offsetX}px`;
-      toc.style.top = `${e.clientY - offsetY}px`;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      if (rafId === null) {
+        rafId = requestAnimationFrame(() => {
+          updatePosition(initialLeft + dx, initialTop + dy);
+          rafId = null;
+        });
+      }
     }
+  }
+
+  function updatePosition(x: number, y: number) {
+    toc.style.left = `${x}px`;
+    toc.style.top = `${y}px`;
   }
 
   function onMouseUp() {
@@ -237,14 +49,19 @@ function createTOCControlBar(toc: HTMLDivElement): HTMLDivElement {
     document.removeEventListener("mousemove", onMouseMove);
     document.removeEventListener("mouseup", onMouseUp);
     document.body.style.userSelect = "";
+
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
   }
 
   return controlBar;
 }
 
-function createTOCTitle(): HTMLElement {
+function createTocTitle(): HTMLElement {
   const titleEl = document.createElement("a");
-  titleEl.id = "webtoc-toc-title";
+  titleEl.id = "webtoc-title";
 
   const title = document.querySelector("title") || document.querySelector("h1");
   titleEl.innerText = title?.innerText || "";
@@ -253,11 +70,11 @@ function createTOCTitle(): HTMLElement {
   return titleEl;
 }
 
-function createTOCBody(): HTMLDivElement {
+function createTocBody(): HTMLDivElement {
   const body = document.createElement("div");
-  body.id = "webtoc-toc-body";
+  body.id = "webtoc-body";
 
-  const tocTitle = createTOCTitle();
+  const tocTitle = createTocTitle();
   body.appendChild(tocTitle);
 
   const headers = document.querySelectorAll("h2, h3, h4, h5, h6");
@@ -298,20 +115,20 @@ function createTOCBody(): HTMLDivElement {
   return body;
 }
 
-function createTOCContainer(): HTMLDivElement {
+function createTocContainer(): HTMLDivElement {
   const background = window.getComputedStyle(document.body).backgroundColor;
   const originBgHsl = rgbStringToHsl(background);
   const darkBgHslString = `hsl(${originBgHsl.h}, ${originBgHsl.s}%, ${originBgHsl.l - 4}%)`;
   const darkBgHslString2 = `hsl(${originBgHsl.h}, ${originBgHsl.s}%, ${originBgHsl.l - 8}%)`;
 
   const toc = document.createElement("div");
-  toc.id = "webtoc-toc";
+  toc.id = "webtoc-root";
   toc.style.backgroundColor = darkBgHslString;
   document.body.appendChild(toc);
 
-  const controlBar = createTOCControlBar(toc);
+  const controlBar = createTocControlBar(toc);
   controlBar.style.backgroundColor = darkBgHslString2;
-  const tocBody = createTOCBody();
+  const tocBody = createTocBody();
 
   toc.appendChild(controlBar);
   toc.appendChild(tocBody);
@@ -320,11 +137,9 @@ function createTOCContainer(): HTMLDivElement {
 }
 
 function main(): void {
-  const sideButton = createSideButton();
-  const tocX = createTOCContainer();
+  const tocX = createTocContainer();
 
   if (document.body.parentNode) {
-    document.body.parentNode.insertBefore(sideButton, document.body.nextSibling);
     document.body.parentNode.insertBefore(tocX, document.body.nextSibling);
   }
 
@@ -340,3 +155,24 @@ function runWhenDocumentReady(): void {
 }
 
 runWhenDocumentReady();
+
+function updateTOCVisibility(isVisible: boolean): void {
+  let tocElement = document.getElementById("webtoc-root");
+  if (tocElement) {
+    tocElement.style.display = isVisible ? "block" : "none";
+    console.log(`TOC visibility updated: ${isVisible ? "visible" : "hidden"}`);
+  } else {
+    console.log("TOC element not found");
+  }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "updateTOC") {
+    updateTOCVisibility(message.isVisible);
+    sendResponse({ success: true });
+  }
+});
+
+chrome.storage.local.get("isTocVisible", (data) => {
+  updateTOCVisibility(data.isTocVisible);
+});
