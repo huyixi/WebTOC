@@ -1,6 +1,5 @@
 function getHeadings() {
   const headings = [];
-
   const pageTitle = document.title;
   if (pageTitle) {
     headings.push({
@@ -10,19 +9,20 @@ function getHeadings() {
     });
   }
 
-  for (let i = 1; i <= 6; i++) {
-    const elements = document.getElementsByTagName('h' + i);
-    for (let j = 0; j < elements.length; j++) {
-      const element = elements[j];
-      const id = `heading-${i}-${j}`;
-      element.id = id;
-      headings.push({
-        level: i,
-        text: element.textContent.trim(),
-        id: id
-      });
-    }
-  }
+  const headerElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+  headerElements.forEach((element, index) => {
+    const level = parseInt(element.tagName.charAt(1));
+    const id = `heading-${level}-${index}`;
+    element.id = id;
+
+    headings.push({
+      level: level,
+      text: element.textContent.trim(),
+      id: id
+    });
+  });
+
   return headings;
 }
 

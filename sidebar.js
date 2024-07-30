@@ -31,7 +31,7 @@ function displayHeadings(headings) {
       li.style.fontSize = '1.1em';
       li.style.marginBottom = '10px';
     } else {
-      li.style.marginLeft = (heading.level - 1) * 20 + 'px';
+      li.style.marginLeft = (heading.level - 1) * 16 + 'px';
     }
     list.appendChild(li);
   });
