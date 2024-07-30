@@ -1,3 +1,7 @@
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error(error));
+
 let activeTabId = null;
 
 chrome.tabs.onActivated.addListener((activeInfo) => {

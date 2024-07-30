@@ -10,7 +10,6 @@ function displayHeadings(headings) {
     a.addEventListener('click', (e) => {
       e.preventDefault();
       if (heading.level === 0) {
-        // 对于页面标题，我们只需要滚动到顶部
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           chrome.tabs.sendMessage(tabs[0].id, {
             action: "scrollToHeading",
@@ -27,7 +26,6 @@ function displayHeadings(headings) {
       }
     });
     li.appendChild(a);
-    // 页面标题使用不同的样式
     if (heading.level === 0) {
       li.style.fontWeight = 'bold';
       li.style.fontSize = '1.1em';
