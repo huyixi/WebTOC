@@ -10,10 +10,12 @@ function getHeadings() {
   }
 
   const headerElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  const levelCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
 
-  headerElements.forEach((element, index) => {
+  headerElements.forEach((element) => {
     const level = parseInt(element.tagName.charAt(1));
-    const id = `heading-${level}-${index}`;
+    levelCounts[level]++;
+    const id = `heading-${level}-${levelCounts[level]}`;
     element.id = id;
 
     headings.push({
